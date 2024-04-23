@@ -1,0 +1,43 @@
+- każdy element ma base offset i base aligement 
+z których aligement offset jest liczony zaokrąglając base offset do wielokrotności base aligement
+
+- base offset pierwszego elementu struktury jest brany z aligned offset samej struktury
+
+- base offset wszystkich pozostałych elementów struktury jest dziedziczony biorąc offset ostatniej podstawowej jednostki maszynowej
+pochłoniętej przez ostatniego członka i dodaniem jeden
+
+- każdy element struktury jest trzymany w pamięci na swoim aligned offsety
+
+- elementy górno poziomowego uniform bloku są rozłożone w buffer storage uznając uniform block jako structurę z base offset równym 0
+
+- Rules:
+    1. bool, int, uint, float, double -> base aligment: 4
+
+    2. vec2, ivec2 itp. -> base aligement: 8
+
+    3. vec3, ivec3, vec4, ivec4 -> base aligement: 16
+
+    4. lista skalarów lub vektorów:
+	    - base aligement listy = base aligement elementu i zaokrąglone do base aligement vec4
+        - array stride = base aligement elementu i zaokrąglone do base aligement vec4
+        - padding możliwy na końcu
+        - base offset elementu po liście jest zaokrąglany do wielokrotności base aligement
+    
+    5. jeśli jest głównie kolumnowa macierz to zapisywana jest jako lista C kolumn wektorów z R komponentami 
+    nawiązując do zasady (4)
+
+    6. jeśli element jest listą S kolumnowych macierzy z C kolumnami i R wierszami to element ten jest przechowywany tak jak 
+    wiersz S x C kolumnowych wektorów z R komponentami każdy nawiązując do zasady (4)
+
+    7. jeśli element jest głównie wierszową macierzą to zapisywana jest jako lista R wierszowych wektorów z C komponentami każdy
+    nawiązując do zasady (4)
+
+    8. jeśli element jest listą S wierszowych macierzy z C kolumnami i R wierszami to macierz jest zapisywana jako lista S x R wierszowych
+    wektorów z C komponentami każdy nawiązując do zasady (4)
+
+    9. jeśli element jest strukturą to base aligement jest N gdzie N to największy base aligement value jakiego kolwiek z jego elementów
+    i zaokrąglony do base aligement vec4. Pojedyńcze elementy w tej strukturze mają offsety zaaplikowane przez te reguły rekursywnie gdzie
+    base offset pierwszego elementu tej struktury jest równy aligement offset tej struktury. struktura może mieć padding na końcu.
+    base offset elementu po tej strukturze jest zaokrąglony do następnej wielokrotności base alignment tej struktury
+
+    10. jeśli element jest listą S struktur to S elementów listy jest rozłożonych w kolejności według zasady (9)
