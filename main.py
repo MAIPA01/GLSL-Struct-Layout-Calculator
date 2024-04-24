@@ -29,6 +29,7 @@ if __name__ == "__main__":
 
         uniformBuffer.addStructArray("o", subStruct, 2)
         print(f"last offset: {uniformBuffer.baseOffset}")
+        print(f"size: {uniformBuffer.getStructSize()}")
 
     def test2():
         uniformBuffer = STD140Struct()
@@ -51,6 +52,7 @@ if __name__ == "__main__":
 
         uniformBuffer.addStructArray("materialInputs", subStruct, 8)
         print(f"last offset: {uniformBuffer.baseOffset}")
+        print(f"size: {uniformBuffer.getStructSize()}")
 
     def test3():
         uniformBuffer = STD140Struct()
@@ -61,6 +63,7 @@ if __name__ == "__main__":
         uniformBuffer.addFloat("gamma")
 
         print(f"last offset: {uniformBuffer.baseOffset}")
+        print(f"size: {uniformBuffer.getStructSize()}")
 
     # test1()
     # test2()
