@@ -106,10 +106,7 @@ class STD140Struct:
         self.addMatArray(name, size, size, num)
 
     def addStruct(self, name: str, struct):
-        baseAligement = struct.maxAligement
-        if (baseAligement % 16 != 0):
-            baseAligement += 16 - (baseAligement % 16)
-        aligementOffset = self.add("struct", name, baseAligement, struct.baseOffset)
+        aligementOffset = self.add("struct", name, struct.getBaseAligement(), struct.baseOffset)
         for key in struct.offsets:
             print(f"{name}.{key}, aligementOffset: {aligementOffset + struct.offsets[key]}")
         if self.baseOffset % 16 != 0:
@@ -118,3 +115,15 @@ class STD140Struct:
     def addStructArray(self, name: str, struct, num: int):
         for i in range(num):
             self.addStruct(f"{name}[{i}]", struct)
+
+    def getBaseAligement(self):
+        baseAligement = self.maxAligement
+        if (baseAligement % 16 != 0):
+            baseAligement += 16 - (baseAligement % 16)
+        return baseAligement
+
+    def getStructSize(self):
+        size = self.baseOffset
+        if size % 16 != 0:
+            size += 16 - (size % 16)
+        return size

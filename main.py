@@ -52,5 +52,16 @@ if __name__ == "__main__":
         uniformBuffer.addStructArray("materialInputs", subStruct, 8)
         print(f"last offset: {uniformBuffer.baseOffset}")
 
+    def test3():
+        uniformBuffer = STD140Struct()
+
+        uniformBuffer.addVec2("windowSize")
+        uniformBuffer.addFloat("nearPlane")
+        uniformBuffer.addFloat("farPlane")
+        uniformBuffer.addFloat("gamma")
+
+        print(f"last offset: {uniformBuffer.baseOffset}")
+
     # test1()
     # test2()
+    test3()
