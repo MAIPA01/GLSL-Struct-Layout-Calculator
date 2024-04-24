@@ -4,54 +4,63 @@ class STD140Struct:
         self.offsets = {}
         self.maxAligement = 0
 
-    def add(self, typeName: str, valueName: str, baseAligement: int):
+    def add(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int):
         aligementOffset = self.baseOffset
         if self.baseOffset % baseAligement != 0:
             aligementOffset += baseAligement - (self.baseOffset % baseAligement)
         print(f"{typeName} {valueName}, baseAligement: {baseAligement}, baseOffset: {self.baseOffset}, aligementOffset: {aligementOffset}")
         self.offsets[valueName] = aligementOffset
-        self.baseOffset = aligementOffset + baseAligement
+        self.baseOffset = aligementOffset + baseOffset
         if baseAligement > self.maxAligement:
             self.maxAligement = baseAligement
+        return aligementOffset
 
-    def addArray(self, typeName: str, valueName: str, baseAligement: int, num: int):
+    def addArray(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int, num: int):
         if baseAligement % 16 != 0:
             baseAligement += 16 - (baseAligement % 16)
         for i in range(num):
-            self.add(typeName, f"{valueName}[{i}]", baseAligement)
+            self.add(typeName, f"{valueName}[{i}]", baseAligement, baseOffset)
+        if self.baseOffset % 16 != 0:
+            self.baseOffset += 16 - (self.baseOffset % 16)
+
+    def addBool(self, name: str):
+        self.add("bool", name, 4, 4)
 
     def addInt(self, name: str):
-        self.add("int", name, 4)
+        self.add("int", name, 4, 4)
+
+    def addUint(self, name: str):
+        self.add("uint", name, 4, 4)
 
     def addFloat(self, name: str):
-        self.add("float", name, 4)
+        self.add("float", name, 4, 4)
 
     def addFloatArray(self, name: str, num: int):
-        self.addArray("float", name, 4, num)
+        self.addArray("float", name, 4, 4, num)
 
     def addVec2(self, name: str):
-        self.add("vec2", name, 8)
+        self.add("vec2", name, 8, 8)
 
     def addVec2Array(self, name: str, num: int):
-        self.addArray("vec2", name, 8, num)
+        self.addArray("vec2", name, 8, 8, num)
 
     def addBVec2(self, name: str):
-        self.add("bvec2", name, 8)
+        self.add("bvec2", name, 8, 8)
 
     def addVec3(self, name: str):
-        self.add("vec3", name, 16)
+        self.add("vec3", name, 16, 12)
 
     def addVec3Array(self, name: str, num: int):
-        self.addArray("vec3", name, 16, num)
+        self.addArray("vec3", name, 16, 12, num)
 
     def addUVec3(self, name: str):
-        self.add("uvec3", name, 16)
+        self.add("uvec3", name, 16, 12)
 
     def addVec4(self, name: str):
-        self.add("vec4", name, 16)
+        self.add("vec4", name, 16, 16)
 
     def addVec4Array(self, name: str, num: int):
-        self.addArray("vec4", name, 16, num)
+        self.addArray("vec4", name, 16, 16, num)
 
     def addMat(self, name: str, cols: int, rows: int):
         if rows == 1:
@@ -79,10 +88,11 @@ class STD140Struct:
         baseAligement = struct.maxAligement
         if (baseAligement % 16 != 0):
             baseAligement += 16 - (baseAligement % 16)
+        aligementOffset = self.add("struct", name, baseAligement, struct.baseOffset)
         for key in struct.offsets:
-            print(f"{name}.{key}, aligementOffset: {struct.offsets[key] + self.baseOffset}")
-        self.add("struct", name, baseAligement)
-        self.baseOffset += struct.baseOffset - baseAligement
+            print(f"{name}.{key}, aligementOffset: {aligementOffset + struct.offsets[key]}")
+        if self.baseOffset % 16 != 0:
+            self.baseOffset += 16 - (self.baseOffset % 16)
 
     def addStructArray(self, name: str, struct, num: int):
         for i in range(num):
@@ -114,5 +124,23 @@ uniformBuffer = STD140Struct()
 # print("SUB STRUCT END")
 
 # uniformBuffer.addStructArray("o", subStruct, 2)
+
+print("SUB STRUCT BEGIN")
+subStruct = STD140Struct()
+subStruct.addBool("has_diffuse_texture")
+subStruct.addBool("has_specular_texture")
+subStruct.addVec3("color")
+subStruct.addFloat("shininess")
+subStruct.addUint("diffuse_toon_borders")
+subStruct.addUint("specular_toon_borders")
+subStruct.addVec2("highlight_translate")
+subStruct.addVec2("highlight_rotation")
+subStruct.addVec2("highlight_scale")
+subStruct.addVec2("highlight_split")
+subStruct.addInt("highlight_square_n")
+subStruct.addFloat("highlight_square_x")
+print("SUB STRUCT END")
+
+uniformBuffer.addStructArray("materialInputs", subStruct, 8)
 
 print(f"last offset: {uniformBuffer.baseOffset}")
