@@ -1,2 +1,2 @@
-# std140-tester
- Repo do testowania aligementu elementów w std140
+# GLSL-Struct-Offsets-Calculator
+ GLSL STD Struct Offsets Calculator
