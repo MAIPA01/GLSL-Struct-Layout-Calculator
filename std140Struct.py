@@ -251,7 +251,7 @@ class STD140Struct:
 
 #####################################
 
-    def addStruct(self, name: str, struct) -> int:
+    def addStruct(self, name: str, struct: Self) -> int:
         offset = self.__add("struct", name, struct.getBaseAligement(), struct.__baseOffset)
         for value in struct.__values:
             c : StructValue = value.copy()
@@ -265,7 +265,7 @@ class STD140Struct:
 
         return offset
 
-    def addStructArray(self, name: str, struct, num: int) -> list[int]:
+    def addStructArray(self, name: str, struct: Self, num: int) -> list[int]:
         offsets = []
         for i in range(num):
             offsets.append(self.addStruct(f"{name}[{i}]", struct))

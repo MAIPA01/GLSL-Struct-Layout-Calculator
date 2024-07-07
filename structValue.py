@@ -1,3 +1,5 @@
+from typing import Self
+
 BOOL = "bool"
 INT = "int"
 UINT = "uint"
@@ -15,57 +17,57 @@ class StructValue:
         self.__padding = padding
         self.__subValues = []
 
-    def append(self, value):
+    def append(self, value: Self) -> None:
         self.__subValues.append(value)
 
-    def setName(self, name: str):
+    def setName(self, name: str) -> None:
         self.__name = name
 
-    def setTypeName(self, typeName: str):
+    def setTypeName(self, typeName: str) -> None:
         self.__typeName = typeName
 
-    def setBaseOffset(self, baseOffset: int):
+    def setBaseOffset(self, baseOffset: int) -> None:
         diff = baseOffset - self.__baseOffset
         self.__baseOffset += diff
         self.__aligementOffset += diff
         for value in self.__subValues:
             value.setBaseOffset(value.getBaseOffset() + diff)
 
-    def setAligementOffset(self, aligementOffset: int):
+    def setAligementOffset(self, aligementOffset: int) -> None:
         diff = aligementOffset - self.__aligementOffset
         self.__baseOffset += diff
         self.__aligementOffset += diff
         for value in self.__subValues:
             value.setAligementOffset(value.getAligementOffset() + diff)
 
-    def setPadding(self, padding: int|None):
+    def setPadding(self, padding: int|None) -> None:
         self.__padding = padding
 
-    def getName(self):
+    def getName(self) -> str:
         return self.__name
 
-    def getBaseOffset(self):
+    def getBaseOffset(self) -> int:
         return self.__baseOffset
 
-    def getBaseAligement(self):
+    def getBaseAligement(self) -> int:
         return self.__baseAligement
     
-    def getTypeName(self):
+    def getTypeName(self) -> str:
         return self.__typeName
     
-    def getAligementOffset(self):
+    def getAligementOffset(self) -> int:
         return self.__aligementOffset
 
-    def getSize(self):
+    def getSize(self) -> int:
         return self.__baseSize
 
-    def getPadding(self):
+    def getPadding(self) -> int:
         return self.__padding
     
-    def getSubValuesCount(self):
+    def getSubValuesCount(self) -> int:
         return len(self.__subValues)
 
-    def getSubValue(self, name: str):
+    def getSubValue(self, name: str) -> Self:
         value = None
 
         names = name.split('.')
@@ -113,7 +115,7 @@ class StructValue:
 
         return value
 
-    def copy(self):
+    def copy(self) -> Self:
         c = StructValue(self.__name, 
                         self.__baseSize,
                         self.__typeName,
