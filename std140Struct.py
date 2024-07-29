@@ -77,7 +77,7 @@ class STD140Struct:
             if rows == 1:
                 rowsOffsets = self.addScalarArray(name, typeName, cols)
             else:
-                rowsOffsets = self.addVecArray(name, typeName, rows, cols)
+                rowsOffsets = self.addVectorArray(name, typeName, rows, cols)
 
             matValue = self.__values[-1]
             matValue.setName(name)
@@ -90,7 +90,7 @@ class STD140Struct:
     def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int]:
         matOffsets = []
         for i in range(num):
-            matOffsets.append(self.addMat(f"{name}[{i}]", typeName, cols, rows))
+            matOffsets.append(self.addMatrix(f"{name}[{i}]", typeName, cols, rows))
         
         firstValue = self.__values[-len(matOffsets)]
         lastValue = self.__values[-1]
@@ -116,10 +116,10 @@ class STD140Struct:
         return matOffsets
 
     def addSquareMatrix(self, name: str, typeName: str, size: int) -> int:
-        return self.addMat(name, typeName, size, size)
+        return self.addMatrix(name, typeName, size, size)
 
     def addSquareMatrixArray(self, name: str, typeName: str, size: int, num: int) -> list[int]:
-        return self.addMatArray(name, typeName, size, size, num)
+        return self.addMatrixArray(name, typeName, size, size, num)
 
 # SPECIFIED ADD FUNCTIONS
 
@@ -317,6 +317,9 @@ class STD140Struct:
         if (baseAligement % 16 != 0):
             baseAligement += 16 - (baseAligement % 16)
         return baseAligement
+
+    def getBaseOffset(self) -> int:
+        return self.__baseOffset
 
     def getStructSize(self) -> int:
         size = self.__baseOffset
