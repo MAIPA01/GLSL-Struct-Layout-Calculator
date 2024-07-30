@@ -47,6 +47,10 @@ class STD430Struct:
             self.__values[-1].append(self.__values[-(num - i) - 1])
             self.__values.pop(-(num - i) - 1)
         
+        if self.__baseOffset % 16 != 0:
+            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
+            self.__baseOffset += 16 - (self.__baseOffset % 16)
+
         return aligementOffsets
 
 # GENERAL ADD FUNCTIONS
@@ -86,7 +90,7 @@ class STD430Struct:
     def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int]:
         matOffsets = []
         for i in range(num):
-            matOffsets.append(self.addMat(f"{name}[{i}]", typeName, cols, rows))
+            matOffsets.append(self.addMatrix(f"{name}[{i}]", typeName, cols, rows))
         
         firstValue = self.__values[-len(matOffsets)]
         lastValue = self.__values[-1]

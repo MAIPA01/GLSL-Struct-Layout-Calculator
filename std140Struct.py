@@ -50,7 +50,7 @@ class STD140Struct:
         if self.__baseOffset % 16 != 0:
             self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
             self.__baseOffset += 16 - (self.__baseOffset % 16)
-        
+
         return aligementOffsets
 
 # GENERAL ADD FUNCTIONS
