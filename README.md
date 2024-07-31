@@ -1,2 +1,2 @@
-# GLSL-Struct-Offsets-Calculator
- GLSL STD Struct Offsets Calculator
+# GLSL-Struct-Layout-Calculator
+ GLSL Struct Layout Calculator
