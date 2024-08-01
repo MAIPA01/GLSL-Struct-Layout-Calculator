@@ -1,21 +1,26 @@
 from typing import Self
 
-BOOL = "bool"
-INT = "int"
-UINT = "uint"
-FLOAT = "float"
-DOUBLE = "double"
-
 class StructValue:
-    def __init__(self, name: str, size: int, typeName: str, baseAligement: int, aligementOffset: int, baseOffset: int, padding: int|None = None):
-        self.__name = name
-        self.__baseSize = size
-        self.__typeName = typeName
-        self.__baseAligement = baseAligement
-        self.__aligementOffset = aligementOffset
-        self.__baseOffset = baseOffset
-        self.__padding = padding
-        self.__subValues = []
+    BOOL = "bool"
+    INT = "int"
+    UINT = "uint"
+    FLOAT = "float"
+    DOUBLE = "double"
+
+    __BLUE = "\033[94m"
+    __GREEN = "\033[92m"
+    __YELLOW = "\033[93m"
+    __RESET = "\033[0m"
+
+    def __init__(self, name: str, typeName: str, size: int, baseAligement: int, aligementOffset: int, baseOffset: int, padding: int | None = None):
+        self.__name: str = name
+        self.__typeName: str = typeName
+        self.__size: int = size
+        self.__baseAligement: int = baseAligement
+        self.__aligementOffset: int = aligementOffset
+        self.__baseOffset: int = baseOffset
+        self.__padding: int | None = padding
+        self.__subValues: list[Self] = []
 
     def append(self, value: Self) -> None:
         self.__subValues.append(value)
@@ -30,15 +35,31 @@ class StructValue:
         diff = baseOffset - self.__baseOffset
         self.__baseOffset += diff
         self.__aligementOffset += diff
+        if self.__aligementOffset < 0:
+            self.__aligementOffset = 0
         for value in self.__subValues:
             value.setBaseOffset(value.getBaseOffset() + diff)
+        if self.__padding is not None:
+            baseOffset = self.__aligementOffset + self.__size
+            if baseOffset % 16 != 0:
+                self.__padding = 16 - (baseOffset % 16)
+            else:
+                self.__padding = 0
 
     def setAligementOffset(self, aligementOffset: int) -> None:
         diff = aligementOffset - self.__aligementOffset
         self.__baseOffset += diff
+        if self.__baseOffset < 0:
+            self.__baseOffset = 0
         self.__aligementOffset += diff
         for value in self.__subValues:
             value.setAligementOffset(value.getAligementOffset() + diff)
+        if self.__padding is not None:
+            baseOffset = self.__aligementOffset + self.__size
+            if baseOffset % 16 != 0:
+                self.__padding = 16 - (baseOffset % 16)
+            else:
+                self.__padding = 0
 
     def setPadding(self, padding: int|None) -> None:
         self.__padding = padding
@@ -59,11 +80,21 @@ class StructValue:
         return self.__aligementOffset
 
     def getSize(self) -> int:
-        return self.__baseSize
+        return self.__size
 
-    def getPadding(self) -> int:
+    def getPadding(self) -> int | None:
         return self.__padding
     
+    def getLostBytes(self) -> int:
+        lostBytes = self.__aligementOffset - self.__baseOffset
+
+        for subValue in self.__subValues:
+            lostBytes += subValue.getLostBytes()
+
+        if self.__padding is not None:
+            lostBytes += self.__padding
+        return lostBytes
+
     def getSubValuesCount(self) -> int:
         return len(self.__subValues)
 
@@ -115,10 +146,26 @@ class StructValue:
 
         return value
 
+    def getInfo(self, short: bool = False, extended: bool = False, indent: str = "") -> str:
+        info = f"{indent}- {self.__BLUE}{self.__typeName} {self.__GREEN}{self.__name}{self.__RESET}"
+        if not short:
+            info += f": base size {self.__YELLOW}{self.__size}{self.__RESET}, base align {self.__YELLOW}{self.__baseAligement}{self.__RESET}, base off. {self.__YELLOW}{self.__baseOffset}{self.__RESET}, align off. {self.__YELLOW}{self.__aligementOffset}{self.__RESET}"
+        
+        if extended:
+            if len(self.__subValues) > 0:
+                info += "\n"
+                if len(self.__subValues) > 1:
+                    for subValue in self.__subValues[:-1]:
+                        info += f'{subValue.getInfo(short, extended, indent + "  ")}\n'
+                info += self.__subValues[-1].getInfo(short, extended, indent + "  ")
+            if self.__padding is not None and not short:
+                info += f"\n{indent + '  '}- End padding of {self.__GREEN}{self.__name}{self.__RESET}: base size {self.__YELLOW}{self.__padding}{self.__RESET}, base off. {self.__YELLOW}{self.__aligementOffset + self.__size}{self.__RESET}, align off. {self.__YELLOW}{self.__aligementOffset + self.__size + self.__padding}{self.__RESET}"
+        return info
+
     def copy(self) -> Self:
         c = StructValue(self.__name, 
-                        self.__baseSize,
                         self.__typeName,
+                        self.__size,
                         self.__baseAligement,
                         self.__aligementOffset,
                         self.__baseOffset,
@@ -127,23 +174,14 @@ class StructValue:
             c.append(value.copy())
         return c
 
-    def print(self, indent: str = "") -> str:
-        text = f"{indent}{self}"
-        for subValue in self.__subValues:
-            text += subValue.print(indent + "  ")
-        if self.__padding is not None:
-            GREEN = "\033[92m"
-            YELLOW = "\033[93m"
-            RESET = "\033[0m"
-            text += f"{indent + '  '}- End padding of {GREEN}{self.__name}{RESET}: base size {YELLOW}{self.__padding}{RESET}, base off. {YELLOW}{self.__aligementOffset + self.__baseSize}{RESET}, align off. {YELLOW}{self.__aligementOffset + self.__baseSize + self.__padding}{RESET}\n"
-        return text
+    def __lt__(self, other) -> bool:
+        if isinstance(other, StructValue):
+            return not (other.__baseAligement > self.__baseAligement or (other.__baseAligement == self.__baseAligement and other.__size > self.__size))
+        else:
+            return False
 
     def __str__(self) -> str:
-        BLUE = "\033[94m"
-        GREEN = "\033[92m"
-        YELLOW = "\033[93m"
-        RESET = "\033[0m"
-        return f"- {BLUE}{self.__typeName} {GREEN}{self.__name}{RESET}: base size {YELLOW}{self.__baseSize}{RESET}, base align {YELLOW}{self.__baseAligement}{RESET}, base off. {YELLOW}{self.__baseOffset}{RESET}, align off. {YELLOW}{self.__aligementOffset}{RESET}\n"
+        return self.getInfo()
 
     def __repr__(self) -> str:
-        return self.print()
+        return self.getInfo(extended=True)

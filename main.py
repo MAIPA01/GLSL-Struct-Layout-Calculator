@@ -33,8 +33,45 @@ if __name__ == "__main__":
         subStruct.addSqrMatArray("n", 3, 2)
 
         uniformBuffer.addStructArray("o", subStruct, 2)
+        # print(uniformBuffer)
+        # print(f"size: {uniformBuffer.getStructSize()}")
+        # print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
+
+        print("--------------OPTIMALIZED---------------")
+        uniformBuffer = STD140Struct()
+        uniformBuffer.addFloat("a")
+        uniformBuffer.addVec("b", 2)
+        uniformBuffer.addVec("c", 3)
+
+        subStruct = STD140Struct()
+        subStruct.addInt("d")
+        subStruct.addBVec("e", 2)
+        subStruct.optimalize()
+
+        uniformBuffer.addStruct("f", subStruct)
+        uniformBuffer.addFloat("g")
+        uniformBuffer.addFloatArray("h", 2)
+        uniformBuffer.addMat("i", 2, 3)
+
+        subStruct = STD140Struct()
+        subStruct.addUVec("j", 3)
+        subStruct.addVec("k", 2)
+        subStruct.addFloatArray("l", 2)
+        subStruct.addVec("m", 2)
+        subStruct.addSqrMatArray("n", 3, 2)
+        subStruct.optimalize()
+
+        uniformBuffer.addStructArray("o", subStruct, 2)
+
         print(uniformBuffer)
         print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
+        uniformBuffer.optimalize()
+        print(uniformBuffer)
+        print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
+
+    std140Test1()
 
     def std140Test2():
         uniformBuffer = STD140Struct()
@@ -324,4 +361,4 @@ if __name__ == "__main__":
             self.assertEqual(ssbo.addStructArray("directionalLights", dirLight, 4), [912, 1024, 1136, 1248])
             self.assertEqual(ssbo.getStructSize(), 1360)
 
-    unittest.main()
+    # unittest.main()
