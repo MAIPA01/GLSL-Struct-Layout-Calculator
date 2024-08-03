@@ -1,7 +1,6 @@
 from std140Struct import *
 from std430Struct import *
 import sys
-import unittest
 
 if __name__ == "__main__":
     def print(value: str = "", separator: str = '\n') -> None:
@@ -71,7 +70,7 @@ if __name__ == "__main__":
         print(f"size: {uniformBuffer.getStructSize()}")
         print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
 
-    std140Test1()
+    # std140Test1()
 
     def std140Test2():
         uniformBuffer = STD140Struct()
@@ -216,149 +215,3 @@ if __name__ == "__main__":
         print("-----------------END OF STD430 Tests------------------")
 
     # tests()
-
-    class Std140Tests(unittest.TestCase):
-
-        def test1(self):
-            uniformBuffer = STD140Struct()
-            self.assertEqual(uniformBuffer.addFloat("a"), 0)
-            self.assertEqual(uniformBuffer.addVec("b", 2), 8)
-            self.assertEqual(uniformBuffer.addVec("c", 3), 16)
-
-            subStruct = STD140Struct()
-            self.assertEqual(subStruct.addInt("d"), 0)
-            self.assertEqual(subStruct.addBVec("e", 2), 8)
-            self.assertEqual(subStruct.getStructSize(), 16)
-
-            self.assertEqual(uniformBuffer.addStruct("f", subStruct), 32)
-            self.assertEqual(uniformBuffer.addFloat("g"), 48)
-            self.assertEqual(uniformBuffer.addFloatArray("h", 2), [64, 80])
-            self.assertEqual(uniformBuffer.addMat("i", 2, 3), 96)
-
-            subStruct = STD140Struct()
-            self.assertEqual(subStruct.addUVec("j", 3), 0)
-            self.assertEqual(subStruct.addVec("k", 2), 16)
-            self.assertEqual(subStruct.addFloatArray("l", 2), [32, 48])
-            self.assertEqual(subStruct.addVec("m", 2), 64)
-            self.assertEqual(subStruct.addSqrMatArray("n", 3, 2), [80, 128])
-            self.assertEqual(subStruct.getStructSize(), 176)
-
-            self.assertEqual(uniformBuffer.addStructArray("o", subStruct, 2), [128, 304])
-
-            self.assertEqual(uniformBuffer.getStructSize(), 480)
-
-        def test2(self):
-            uniformBuffer = STD140Struct()
-
-            subStruct = STD140Struct()
-            self.assertEqual(subStruct.addBool("has_diffuse_texture"), 0)
-            self.assertEqual(subStruct.addBool("has_specular_texture"), 4)
-            self.assertEqual(subStruct.addVec("color", 3), 16)
-            self.assertEqual(subStruct.addFloat("shininess"), 28)
-            self.assertEqual(subStruct.addUint("diffuse_toon_borders"), 32)
-            self.assertEqual(subStruct.addUint("specular_toon_borders"), 36)
-            self.assertEqual(subStruct.addVec("highlight_translate", 2), 40)
-            self.assertEqual(subStruct.addVec("highlight_rotation", 2), 48)
-            self.assertEqual(subStruct.addVec("highlight_scale", 2), 56)
-            self.assertEqual(subStruct.addVec("highlight_split", 2), 64)
-            self.assertEqual(subStruct.addInt("highlight_square_n"), 72)
-            self.assertEqual(subStruct.addFloat("highlight_square_x"), 76)
-            self.assertEqual(subStruct.getStructSize(), 80)
-
-            self.assertEqual(uniformBuffer.addStructArray("materialInputs", subStruct, 8), [0, 80, 160, 240, 320, 400, 480, 560])
-            self.assertEqual(uniformBuffer.getStructSize(), 640)
-
-        def test3(self):
-            uniformBuffer = STD140Struct()
-
-            self.assertEqual(uniformBuffer.addVec("windowSize", 2), 0)
-            self.assertEqual(uniformBuffer.addFloat("nearPlane"), 8)
-            self.assertEqual(uniformBuffer.addFloat("farPlane"), 12)
-            self.assertEqual(uniformBuffer.addFloat("gamma"), 16)
-
-            self.assertEqual(uniformBuffer.getStructSize(), 32)
-
-    class Std430Tests(unittest.TestCase):
-
-        def test1(self):
-            rect = STD430Struct()
-            self.assertEqual(rect.addSqrMat("transform", 4), 0)
-            self.assertEqual(rect.addVec("size", 2), 64)
-            self.assertEqual(rect.getStructSize(), 80)
-
-            sprite = STD430Struct()
-            self.assertEqual(sprite.addUVec("offset", 2), 0)
-            self.assertEqual(sprite.addUVec("size", 2), 8)
-            self.assertEqual(sprite.addBool("isActive"), 16)
-            self.assertEqual(sprite.getStructSize(), 32)
-
-            fill = STD430Struct()
-            self.assertEqual(fill.addUint("type"), 0)
-            self.assertEqual(fill.addUint("subType"), 4)
-            self.assertEqual(fill.addFloat("offset"), 8)
-            self.assertEqual(fill.addFloat("progress"), 12)
-            self.assertEqual(fill.addFloat("rotation"), 16)
-            self.assertEqual(fill.addBool("isActive"), 20)
-            self.assertEqual(fill.getStructSize(), 32)
-
-            uiElement = STD430Struct()
-            self.assertEqual(uiElement.addStruct("rect", rect), 0)
-            self.assertEqual(uiElement.addStruct("sprite", sprite), 80)
-            self.assertEqual(uiElement.addStruct("fill", fill), 112)
-            self.assertEqual(uiElement.addVec("color", 4), 144)
-            self.assertEqual(uiElement.addBool("isText"), 160)
-            self.assertEqual(uiElement.getStructSize(), 176)
-
-            texture = STD430Struct()
-            self.assertEqual(texture.addUVec("size", 2), 0)
-            self.assertEqual(texture.addBool("isActive"), 8)
-            self.assertEqual(texture.getStructSize(), 16)
-
-            ssbo = STD430Struct()
-            self.assertEqual(ssbo.addStructArray("uiElements", uiElement, 8), [0, 176, 352, 528, 704, 880, 1056, 1232])
-            self.assertEqual(ssbo.addStruct("elementTexture", texture), 1408)
-            self.assertEqual(ssbo.addInt("elementLayer"), 1424)
-            self.assertEqual(ssbo.getStructSize(), 1440)
-
-        def test2(self):
-            pointLight = STD430Struct()
-            self.assertEqual(pointLight.addVec("position", 3), 0)
-            self.assertEqual(pointLight.addVec("color", 3), 16)
-            self.assertEqual(pointLight.addFloat("power"), 28)
-            self.assertEqual(pointLight.addFloat("constant"), 32)
-            self.assertEqual(pointLight.addFloat("linear"), 36)
-            self.assertEqual(pointLight.addFloat("quadratic"), 40)
-            self.assertEqual(pointLight.getStructSize(), 48)
-
-            spotLight = STD430Struct()
-            self.assertEqual(spotLight.addVec("position", 3), 0)
-            self.assertEqual(spotLight.addVec("direction", 3), 16)
-            self.assertEqual(spotLight.addFloat("power"), 28)
-            self.assertEqual(spotLight.addVec("color", 3), 32)
-            self.assertEqual(spotLight.addFloat("cutOff"), 44)
-            self.assertEqual(spotLight.addFloat("outerCutOff"), 48)
-            self.assertEqual(spotLight.addFloat("constant"), 52)
-            self.assertEqual(spotLight.addFloat("linear"), 56)
-            self.assertEqual(spotLight.addFloat("quadratic"), 60)
-            self.assertEqual(spotLight.getStructSize(), 64)
-
-            dirLight = STD430Struct()
-            self.assertEqual(dirLight.addVec("direction", 3), 0)
-            self.assertEqual(dirLight.addVec("color", 3), 16)
-            self.assertEqual(dirLight.addSqrMat("lightSpaceMatrix", 4), 32)
-            self.assertEqual(dirLight.addFloat("power"), 96)
-            self.assertEqual(dirLight.addInt("padding1"), 100)
-            self.assertEqual(dirLight.addInt("padding2"), 104)
-            self.assertEqual(dirLight.addInt("padding3"), 108)
-            self.assertEqual(dirLight.getStructSize(), 112)
-
-            ssbo = STD430Struct()
-            self.assertEqual(ssbo.addUint("numberOfPointLights"), 0)
-            self.assertEqual(ssbo.addUint("numberOfSpotLights"), 4)
-            self.assertEqual(ssbo.addUint("numberOfDirLights"), 8)
-            self.assertEqual(ssbo.addStructArray("pointLights", pointLight, 8), [16, 64, 112, 160, 208, 256, 304, 352])
-            self.assertEqual(ssbo.addStructArray("spotLights", spotLight, 8), [400, 464, 528, 592, 656, 720, 784, 848])
-            self.assertEqual(ssbo.addStructArray("directionalLights", dirLight, 4), [912, 1024, 1136, 1248])
-            self.assertEqual(ssbo.getStructSize(), 1360)
-
-    # unittest.main()

@@ -6,40 +6,38 @@ class STD140Struct:
     __matTypes : dict[str, str] = { StructValue.BOOL : "bmat", StructValue.INT : "imat", StructValue.UINT : "umat", StructValue.FLOAT : "mat", StructValue.DOUBLE : "dmat" }
 
     def __init__(self):
-        self.__baseOffset : int = 0
-        self.__values : list[StructValue] = []
-        self.__maxAligement : int = 0
+        self.reset()
 
 # PRIVATE ADD FUNCTIONS
 
     def __addValue(self, name: str, typeName: str, size: int, baseAligement: int, baseOffset: int, aligementOffset: int, padding: int | None = None) -> None:
         self.__values.append(StructValue(name, typeName, size, baseAligement, baseOffset, aligementOffset, padding))
 
-    def __add(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int) -> int:
+    def __add(self, name: str, typeName: str, baseAligement: int, baseOffset: int) -> int:
         aligementOffset = self.__baseOffset
         if self.__baseOffset % baseAligement != 0:
             aligementOffset += baseAligement - (self.__baseOffset % baseAligement)
         
-        self.__addValue(valueName, typeName, baseOffset, baseAligement, aligementOffset, self.__baseOffset)
+        self.__addValue(name, typeName, baseOffset, baseAligement, aligementOffset, self.__baseOffset)
 
         self.__baseOffset = aligementOffset + baseOffset
         if baseAligement > self.__maxAligement:
             self.__maxAligement = baseAligement
         return aligementOffset
 
-    def __addArray(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
+    def __addArray(self, name: str, typeName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
         if baseAligement % 16 != 0:
             baseAligement += 16 - (baseAligement % 16)
 
         aligementOffsets = []
         for i in range(num):
-            aligementOffsets.append(self.__add(typeName, f"{valueName}[{i}]", baseAligement, baseOffset))
+            aligementOffsets.append(self.__add(f"{name}[{i}]", typeName, baseAligement, baseOffset))
 
         firstValue = self.__values[-len(aligementOffsets)]
         lastValue = self.__values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__addValue(valueName,
+        self.__addValue(name,
                         f"{typeName}[{num}]",
                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                         baseAligement,
@@ -60,22 +58,31 @@ class STD140Struct:
 # GENERAL ADD FUNCTIONS
 
     def addScalar(self, name: str, typeName: str) -> int:
-        return self.__add(typeName, name, self.__typeSizes[typeName], self.__typeSizes[typeName])
+        return self.__add(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName])
 
     def addScalarArray(self, name: str, typeName: str, num: int) -> list[int]:
-        return self.__addArray(typeName, name, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
+        return self.__addArray(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
 
-    def addVector(self, name: str, typeName: str, length: int) -> int:
+    def addVector(self, name: str, typeName: str, length: int) -> int | None:
+        if length < 1 or length > 4:
+            return None
+
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
         baseOffset = self.__typeSizes[typeName] * length
-        return self.__add(f"{self.__vecTypes[typeName]}{length}", name, baseAligement, baseOffset)
+        return self.__add(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset)
 
-    def addVectorArray(self, name: str, typeName: str, length: int, num: int) -> list[int]:
+    def addVectorArray(self, name: str, typeName: str, length: int, num: int) -> list[int] | None:
+        if length < 1 or length > 4:
+            return None
+        
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
         baseOffset = self.__typeSizes[typeName] * length
-        return self.__addArray(f"{self.__vecTypes[typeName]}{length}", name, baseAligement, baseOffset, num)
+        return self.__addArray(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset, num)
 
-    def addMatrix(self, name: str, typeName: str, cols: int, rows: int) -> int:
+    def addMatrix(self, name: str, typeName: str, cols: int, rows: int) -> int | None:
+        if rows < 1 or rows > 4 or cols < 1 or cols > 4:
+            return None
+
         rowsOffsets = []
         if rows in [1, 2, 3, 4]:
             if rows == 1:
@@ -91,7 +98,10 @@ class STD140Struct:
             print("Podano złą liczbę wierszy")
         return rowsOffsets[0] if len(rowsOffsets) != 0 else rowsOffsets
 
-    def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int]:
+    def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int] | None:
+        if rows < 1 or rows > 4 or cols < 1 or cols > 4:
+            return None
+        
         matOffsets = []
         for i in range(num):
             matOffsets.append(self.addMatrix(f"{name}[{i}]", typeName, cols, rows))
@@ -118,10 +128,10 @@ class STD140Struct:
         
         return matOffsets
 
-    def addSquareMatrix(self, name: str, typeName: str, size: int) -> int:
+    def addSquareMatrix(self, name: str, typeName: str, size: int) -> int | None:
         return self.addMatrix(name, typeName, size, size)
 
-    def addSquareMatrixArray(self, name: str, typeName: str, size: int, num: int) -> list[int]:
+    def addSquareMatrixArray(self, name: str, typeName: str, size: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, typeName, size, size, num)
 
 # SPECIFIED ADD FUNCTIONS
@@ -158,98 +168,98 @@ class STD140Struct:
 
 ##########################################
 
-    def addBVec(self, name: str, length: int) -> int:
+    def addBVec(self, name: str, length: int) -> int | None:
         return self.addVector(name, StructValue.BOOL, length)
 
-    def addBVecArray(self, name: str, length: int, num: int) -> list[int]:
+    def addBVecArray(self, name: str, length: int, num: int) -> list[int] | None:
         return self.addVectorArray(name, StructValue.BOOL, length, num)
 
-    def addIVec(self, name: str, length: int) -> int:
+    def addIVec(self, name: str, length: int) -> int | None:
         return self.addVector(name, StructValue.INT, length)
 
-    def addIVecArray(self, name: str, length: int, num: int) -> list[int]:
+    def addIVecArray(self, name: str, length: int, num: int) -> list[int] | None:
         return self.addVectorArray(name, StructValue.INT, length, num)
 
-    def addUVec(self, name: str, length: int) -> int:
+    def addUVec(self, name: str, length: int) -> int | None:
         return self.addVector(name, StructValue.UINT, length)
 
-    def addUVecArray(self, name: str, length: int, num: int) -> list[int]:
+    def addUVecArray(self, name: str, length: int, num: int) -> list[int] | None:
         return self.addVectorArray(name, StructValue.UINT, length, num)
 
-    def addVec(self, name: str, length: int) -> int:
+    def addVec(self, name: str, length: int) -> int | None:
         return self.addVector(name, StructValue.FLOAT, length)
 
-    def addVecArray(self, name: str, length: int, num: int) -> list[int]:
+    def addVecArray(self, name: str, length: int, num: int) -> list[int] | None:
         return self.addVectorArray(name, StructValue.FLOAT, length, num)
 
-    def addDVec(self, name: str, length: int) -> int:
+    def addDVec(self, name: str, length: int) -> int | None:
         return self.addVector(name, StructValue.DOUBLE, length)
 
-    def addDVecArray(self, name: str, length: int, num: int) -> list[int]:
+    def addDVecArray(self, name: str, length: int, num: int) -> list[int] | None:
         return self.addVectorArray(name, StructValue.DOUBLE, length, num)
 
 ###################################
 
-    def addBMat(self, name: str, cols: int, rows: int) -> int:
+    def addBMat(self, name: str, cols: int, rows: int) -> int | None:
         return self.addMatrix(name, StructValue.BOOL, cols, rows)
 
-    def addBMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
+    def addBMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, StructValue.BOOL, cols, rows, num)
 
-    def addIMat(self, name: str, cols: int, rows: int) -> int:
+    def addIMat(self, name: str, cols: int, rows: int) -> int | None:
         return self.addMatrix(name, StructValue.INT, cols, rows)
 
-    def addIMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
+    def addIMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, StructValue.INT, cols, rows, num)
 
-    def addUMat(self, name: str, cols: int, rows: int) -> int:
+    def addUMat(self, name: str, cols: int, rows: int) -> int | None:
         return self.addMatrix(name, StructValue.UINT, cols, rows)
 
-    def addUMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
+    def addUMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, StructValue.UINT, cols, rows, num)
 
-    def addMat(self, name: str, cols: int, rows: int) -> int:
+    def addMat(self, name: str, cols: int, rows: int) -> int | None:
         return self.addMatrix(name, StructValue.FLOAT, cols, rows)
 
-    def addMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
+    def addMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, StructValue.FLOAT, cols, rows, num)
 
-    def addDMat(self, name: str, cols: int, rows: int) -> int:
+    def addDMat(self, name: str, cols: int, rows: int) -> int | None:
         return self.addMatrix(name, StructValue.DOUBLE, cols, rows)
 
-    def addDMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
+    def addDMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int] | None:
         return self.addMatrixArray(name, StructValue.DOUBLE, cols, rows, num)
 
 ###################################
 
-    def addSqrBMat(self, name: str, size: int) -> int:
+    def addSqrBMat(self, name: str, size: int) -> int | None:
         return self.addSquareMatrix(name, StructValue.BOOL, size)
 
-    def addSqrBMatArray(self, name: str, size: int, num: int) -> list[int]:
+    def addSqrBMatArray(self, name: str, size: int, num: int) -> list[int] | None:
         return self.addSquareMatrixArray(name, StructValue.BOOL, size, num)
 
-    def addSqrIMat(self, name: str, size: int) -> int:
+    def addSqrIMat(self, name: str, size: int) -> int | None:
         return self.addSquareMatrix(name, StructValue.INT, size)
 
-    def addSqrIMatArray(self, name: str, size: int, num: int) -> list[int]:
+    def addSqrIMatArray(self, name: str, size: int, num: int) -> list[int] | None:
         return self.addSquareMatrixArray(name, StructValue.INT, size, num)
 
-    def addSqrUMat(self, name: str, size: int) -> int:
+    def addSqrUMat(self, name: str, size: int) -> int | None:
         return self.addSquareMatrix(name, StructValue.UINT, size)
 
-    def addSqrUMatArray(self, name: str, size: int, num: int) -> list[int]:
+    def addSqrUMatArray(self, name: str, size: int, num: int) -> list[int] | None:
         return self.addSquareMatrixArray(name, StructValue.UINT, size, num)
 
-    def addSqrMat(self, name: str, size: int) -> int:
+    def addSqrMat(self, name: str, size: int) -> int | None:
         return self.addSquareMatrix(name, StructValue.FLOAT, size)
 
-    def addSqrMatArray(self, name: str, size: int, num: int) -> list[int]:
+    def addSqrMatArray(self, name: str, size: int, num: int) -> list[int] | None:
         return self.addSquareMatrixArray(name, StructValue.FLOAT, size, num)
 
-    def addSqrDMat(self, name: str, size: int) -> int:
+    def addSqrDMat(self, name: str, size: int) -> int | None:
         return self.addSquareMatrix(name, StructValue.DOUBLE, size)
 
-    def addSqrDMatArray(self, name: str, size: int, num: int) -> list[int]:
+    def addSqrDMatArray(self, name: str, size: int, num: int) -> list[int] | None:
         return self.addSquareMatrixArray(name, StructValue.DOUBLE, size, num)
 
 #####################################
@@ -337,6 +347,13 @@ class STD140Struct:
         
         self.__values = tempValues
         self.__baseOffset = baseOffset
+
+# CLEANER
+
+    def reset(self) -> None:
+        self.__baseOffset : int = 0
+        self.__values : list[StructValue] = []
+        self.__maxAligement : int = 0
 
 # GETTERS
 

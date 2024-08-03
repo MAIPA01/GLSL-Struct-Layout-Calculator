@@ -19,7 +19,7 @@ class STD430Struct:
         if self.__baseOffset % baseAligement != 0:
             aligementOffset += baseAligement - (self.__baseOffset % baseAligement)
         
-        self.__values.append(StructValue(valueName, baseOffset, typeName, baseAligement, aligementOffset, self.__baseOffset))
+        self.__values.append(StructValue(valueName, typeName, baseOffset, baseAligement, aligementOffset, self.__baseOffset))
 
         self.__baseOffset = aligementOffset + baseOffset
         if baseAligement > self.__maxAligement:
@@ -36,8 +36,8 @@ class STD430Struct:
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
         self.__values.append(StructValue(valueName,
-                                        (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                                         f"{typeName}[{num}]",
+                                        (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                                         baseAligement,
                                         firstValue.getAligementOffset(),
                                         firstValue.getBaseOffset(),
@@ -124,130 +124,130 @@ class STD430Struct:
 # SPECIFIED ADD FUNCTIONS
 
     def addBool(self, name: str) -> int:
-        return self.addScalar(name, BOOL)
+        return self.addScalar(name, StructValue.BOOL)
 
     def addBoolArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, BOOL, num)
+        return self.addScalarArray(name, StructValue.BOOL, num)
 
     def addInt(self, name: str) -> int:
-        return self.addScalar(name, INT)
+        return self.addScalar(name, StructValue.INT)
 
     def addIntArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, INT, num)
+        return self.addScalarArray(name, StructValue.INT, num)
 
     def addUint(self, name: str) -> int:
-        return self.addScalar(name, UINT)
+        return self.addScalar(name, StructValue.UINT)
 
     def addUintArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, UINT, num)
+        return self.addScalarArray(name, StructValue.UINT, num)
 
     def addFloat(self, name: str) -> int:
-        return self.addScalar(name, FLOAT)
+        return self.addScalar(name, StructValue.FLOAT)
 
     def addFloatArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, FLOAT, num)
+        return self.addScalarArray(name, StructValue.FLOAT, num)
 
     def addDouble(self, name: str) -> int:
-        return self.addScalar(name, DOUBLE)
+        return self.addScalar(name, StructValue.DOUBLE)
 
     def addDoubleArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, DOUBLE, num)
+        return self.addScalarArray(name, StructValue.DOUBLE, num)
 
 ##########################################
 
     def addBVec(self, name: str, length: int) -> int:
-        return self.addVector(name, BOOL, length)
+        return self.addVector(name, StructValue.BOOL, length)
 
     def addBVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, BOOL, length, num)
+        return self.addVectorArray(name, StructValue.BOOL, length, num)
 
     def addIVec(self, name: str, length: int) -> int:
-        return self.addVector(name, INT, length)
+        return self.addVector(name, StructValue.INT, length)
 
     def addIVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, INT, length, num)
+        return self.addVectorArray(name, StructValue.INT, length, num)
 
     def addUVec(self, name: str, length: int) -> int:
-        return self.addVector(name, UINT, length)
+        return self.addVector(name, StructValue.UINT, length)
 
     def addUVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, UINT, length, num)
+        return self.addVectorArray(name, StructValue.UINT, length, num)
 
     def addVec(self, name: str, length: int) -> int:
-        return self.addVector(name, FLOAT, length)
+        return self.addVector(name, StructValue.FLOAT, length)
 
     def addVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, FLOAT, length, num)
+        return self.addVectorArray(name, StructValue.FLOAT, length, num)
 
     def addDVec(self, name: str, length: int) -> int:
-        return self.addVector(name, DOUBLE, length)
+        return self.addVector(name, StructValue.DOUBLE, length)
 
     def addDVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, DOUBLE, length, num)
+        return self.addVectorArray(name, StructValue.DOUBLE, length, num)
 
 ###################################
 
     def addBMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, BOOL, cols, rows)
+        return self.addMatrix(name, StructValue.BOOL, cols, rows)
 
     def addBMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, BOOL, cols, rows, num)
+        return self.addMatrixArray(name, StructValue.BOOL, cols, rows, num)
 
     def addIMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, INT, cols, rows)
+        return self.addMatrix(name, StructValue.INT, cols, rows)
 
     def addIMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, INT, cols, rows, num)
+        return self.addMatrixArray(name, StructValue.INT, cols, rows, num)
 
     def addUMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, UINT, cols, rows)
+        return self.addMatrix(name, StructValue.UINT, cols, rows)
 
     def addUMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, UINT, cols, rows, num)
+        return self.addMatrixArray(name, StructValue.UINT, cols, rows, num)
 
     def addMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, FLOAT, cols, rows)
+        return self.addMatrix(name, StructValue.FLOAT, cols, rows)
 
     def addMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, FLOAT, cols, rows, num)
+        return self.addMatrixArray(name, StructValue.FLOAT, cols, rows, num)
 
     def addDMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, DOUBLE, cols, rows)
+        return self.addMatrix(name, StructValue.DOUBLE, cols, rows)
 
     def addDMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, DOUBLE, cols, rows, num)
+        return self.addMatrixArray(name, StructValue.DOUBLE, cols, rows, num)
 
 ###################################
 
     def addSqrBMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, BOOL, size)
+        return self.addSquareMatrix(name, StructValue.BOOL, size)
 
     def addSqrBMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, BOOL, size, num)
+        return self.addSquareMatrixArray(name, StructValue.BOOL, size, num)
 
     def addSqrIMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, INT, size)
+        return self.addSquareMatrix(name, StructValue.INT, size)
 
     def addSqrIMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, INT, size, num)
+        return self.addSquareMatrixArray(name, StructValue.INT, size, num)
 
     def addSqrUMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, UINT, size)
+        return self.addSquareMatrix(name, StructValue.UINT, size)
 
     def addSqrUMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, UINT, size, num)
+        return self.addSquareMatrixArray(name, StructValue.UINT, size, num)
 
     def addSqrMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, FLOAT, size)
+        return self.addSquareMatrix(name, StructValue.FLOAT, size)
 
     def addSqrMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, FLOAT, size, num)
+        return self.addSquareMatrixArray(name, StructValue.FLOAT, size, num)
 
     def addSqrDMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, DOUBLE, size)
+        return self.addSquareMatrix(name, StructValue.DOUBLE, size)
 
     def addSqrDMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, DOUBLE, size, num)
+        return self.addSquareMatrixArray(name, StructValue.DOUBLE, size, num)
 
 #####################################
 
@@ -275,8 +275,8 @@ class STD430Struct:
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
         self.__values.append(StructValue(name,
-                                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                                         f"struct[{num}]",
+                                        (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                                         firstValue.getBaseAligement(),
                                         firstValue.getAligementOffset(),
                                         firstValue.getBaseOffset(),
