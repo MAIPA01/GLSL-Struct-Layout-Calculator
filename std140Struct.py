@@ -64,7 +64,7 @@ class STD140Struct:
         return self.__addArray(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
 
     def addVector(self, name: str, typeName: str, length: int) -> int | None:
-        if length < 1 or length > 4:
+        if length < 2 or length > 4:
             return None
 
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
@@ -72,7 +72,7 @@ class STD140Struct:
         return self.__add(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset)
 
     def addVectorArray(self, name: str, typeName: str, length: int, num: int) -> list[int] | None:
-        if length < 1 or length > 4:
+        if length < 2 or length > 4:
             return None
         
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
@@ -80,7 +80,7 @@ class STD140Struct:
         return self.__addArray(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset, num)
 
     def addMatrix(self, name: str, typeName: str, cols: int, rows: int) -> int | None:
-        if rows < 1 or rows > 4 or cols < 1 or cols > 4:
+        if rows < 2 or rows > 4 or cols < 2 or cols > 4:
             return None
 
         rowsOffsets = []
@@ -99,7 +99,7 @@ class STD140Struct:
         return rowsOffsets[0] if len(rowsOffsets) != 0 else rowsOffsets
 
     def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int] | None:
-        if rows < 1 or rows > 4 or cols < 1 or cols > 4:
+        if rows < 2 or rows > 4 or cols < 2 or cols > 4:
             return None
         
         matOffsets = []
