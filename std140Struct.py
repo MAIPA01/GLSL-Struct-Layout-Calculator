@@ -300,18 +300,18 @@ class STD140Struct:
 # OPTIMALIZER
 
     def getLostBytes(self) -> int:
-        lostBytes = self.getStructSize() - self.__baseOffset
-        for value in self.__values:
+        lostBytes = self.getSize() - self._baseOffset
+        for value in self._values:
             lostBytes += value.getLostBytes()
         return lostBytes
 
     def optimalize(self) -> None:
-        sortedValues : list[StructValue] = self.__values.copy()
+        sortedValues : list[StructValue] = self._values.copy()
         sortedValues.sort()
         
         tempValues = []
         baseOffset = 0
-        while len(tempValues) != len(self.__values):
+        while len(tempValues) != len(self._values):
             choosedValue = None
             for value in sortedValues:
                 if baseOffset % value.getBaseAligement() == 0:
@@ -337,8 +337,8 @@ class STD140Struct:
             
             sortedValues.remove(choosedValue)
         
-        self.__values = tempValues
-        self.__baseOffset = baseOffset
+        self._values = tempValues
+        self._baseOffset = baseOffset
 
 # CLEANER
 
@@ -374,7 +374,7 @@ class STD140Struct:
         return baseAligement
 
     def getBaseOffset(self) -> int:
-        return self.__baseOffset
+        return self._baseOffset
 
     def getSize(self) -> int:
         size = self._baseOffset
@@ -384,7 +384,7 @@ class STD140Struct:
     
     def getInfo(self, short: bool = True, extended: bool = True) -> str:
         text = "Struct layout STD140 (ALL VALUES IN BYTES):\n"
-        for value in self.__values:
+        for value in self._values:
             text += f'{value.getInfo(short, extended, "  ")}\n'
         return text
 

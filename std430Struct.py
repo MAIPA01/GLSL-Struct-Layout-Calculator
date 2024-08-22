@@ -83,8 +83,8 @@ class STD430Struct(STD140Struct):
     def getBaseAligement(self) -> int:
         return self._maxAligement
     
-    def __str__(self) -> str:
-        text = "Struct layout STD430 (ALL VALUES IN BYTES):\n"        
+    def getInfo(self, short: bool = True, extended: bool = True) -> str:
+        text = "Struct layout STD430 (ALL VALUES IN BYTES):\n"
         for value in self._values:
-            text += value.print("  ")
+            text += f'{value.getInfo(short, extended, "  ")}\n'
         return text

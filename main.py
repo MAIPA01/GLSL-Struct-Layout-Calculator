@@ -63,14 +63,12 @@ if __name__ == "__main__":
         uniformBuffer.addStructArray("o", subStruct, 2)
 
         print(uniformBuffer)
-        print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"size: {uniformBuffer.getSize()}")
         print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
         uniformBuffer.optimalize()
         print(uniformBuffer)
-        print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"size: {uniformBuffer.getSize()}")
         print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
-
-    # std140Test1()
 
     def std140Test2():
         uniformBuffer = STD140Struct()
@@ -91,7 +89,7 @@ if __name__ == "__main__":
 
         uniformBuffer.addStructArray("materialInputs", subStruct, 8)
         print(uniformBuffer)
-        print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"size: {uniformBuffer.getSize()}")
 
     def std140Test3():
         uniformBuffer = STD140Struct()
@@ -102,7 +100,7 @@ if __name__ == "__main__":
         uniformBuffer.addFloat("gamma")
 
         print(uniformBuffer)
-        print(f"size: {uniformBuffer.getStructSize()}")
+        print(f"size: {uniformBuffer.getSize()}")
 
     def std140Tests():
         print("----------START OF TEST1-----------")
@@ -153,7 +151,7 @@ if __name__ == "__main__":
 
         print(ssbo)
         print(f"baseOffset: {ssbo.getBaseOffset()}")
-        print(f"size: {ssbo.getStructSize()}")
+        print(f"size: {ssbo.getSize()}")
 
     def std430Test2():
         pointLight = STD430Struct()
@@ -194,7 +192,7 @@ if __name__ == "__main__":
 
         print(ssbo)
         print(f"baseOffset: {ssbo.getBaseOffset()}")
-        print(f"size: {ssbo.getStructSize()}")
+        print(f"size: {ssbo.getSize()}")
 
     def std430Tests():
         print("----------START OF TEST1-----------")
@@ -214,4 +212,4 @@ if __name__ == "__main__":
         std430Tests()
         print("-----------------END OF STD430 Tests------------------")
 
-    # tests()
+    tests()
