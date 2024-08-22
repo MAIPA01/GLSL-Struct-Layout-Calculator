@@ -1,267 +1,53 @@
 # BASE ALIGENMENT AND STRIDE OF ARRAYS OF SCALARS AND VECTORS IN RULE 4 
 # AND STRUCTURES IN RULE 9 ARE NOT ROUNDED UP A MULTIPLE OF THE BASE ALIGNEMNT OF VEC4
 
+from std140Struct import *
 from structValue import *
 
-class STD430Struct:
-    def __init__(self):
-        self.__baseOffset : int = 0
-        self.__values : list[StructValue] = []
-        self.__maxAligement : int = 0
-        self.__typeSizes : dict[str, int] = { "bool" : 4, "int" : 4, "uint" : 4, "float" : 4, "double" : 8 }
-        self.__vecTypes : dict[str, str] = { "bool" : "bvec", "int" : "ivec", "uint" : "uvec", "float" : "vec", "double" : "dvec" }
-        self.__matTypes : dict[str, str] = { "bool" : "bmat", "int" : "imat", "uint" : "umat", "float" : "mat", "double" : "dmat" }
+class STD430Struct(STD140Struct):
 
 # PRIVATE ADD FUNCTIONS
 
-    def __add(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int) -> int:
-        aligementOffset = self.__baseOffset
-        if self.__baseOffset % baseAligement != 0:
-            aligementOffset += baseAligement - (self.__baseOffset % baseAligement)
-        
-        self.__values.append(StructValue(valueName, typeName, baseOffset, baseAligement, aligementOffset, self.__baseOffset))
-
-        self.__baseOffset = aligementOffset + baseOffset
-        if baseAligement > self.__maxAligement:
-            self.__maxAligement = baseAligement
-        return aligementOffset
-
-    def __addArray(self, typeName: str, valueName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
+    def _addArray(self, name: str, typeName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
         aligementOffsets = []
         for i in range(num):
-            aligementOffsets.append(self.__add(typeName, f"{valueName}[{i}]", baseAligement, baseOffset))
+            aligementOffsets.append(self._add(f"{name}[{i}]", typeName, baseAligement, baseOffset))
 
-        firstValue = self.__values[-len(aligementOffsets)]
-        lastValue = self.__values[-1]
+        firstValue = self._values[-len(aligementOffsets)]
+        lastValue = self._values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__values.append(StructValue(valueName,
-                                        f"{typeName}[{num}]",
-                                        (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
-                                        baseAligement,
-                                        firstValue.getAligementOffset(),
-                                        firstValue.getBaseOffset(),
-                                        0))
+        self._addValue(name,
+                        f"{typeName}[{num}]",
+                        (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
+                        baseAligement,
+                        firstValue.getAligementOffset(),
+                        firstValue.getBaseOffset(),
+                        0)
         
         for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
+            self._values[-1].append(self._values[-(num - i) - 1])
+            self._values.pop(-(num - i) - 1)
         
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return aligementOffsets
-
-# GENERAL ADD FUNCTIONS
-
-    def addScalar(self, name: str, typeName: str) -> int:
-        return self.__add(typeName, name, self.__typeSizes[typeName], self.__typeSizes[typeName])
-
-    def addScalarArray(self, name: str, typeName: str, num: int) -> list[int]:
-        return self.__addArray(typeName, name, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
-
-    def addVector(self, name: str, typeName: str, length: int) -> int:
-        baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
-        baseOffset = self.__typeSizes[typeName] * length
-        return self.__add(f"{self.__vecTypes[typeName]}{length}", name, baseAligement, baseOffset)
-
-    def addVectorArray(self, name: str, typeName: str, length: int, num: int) -> list[int]:
-        baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
-        baseOffset = self.__typeSizes[typeName] * length
-        return self.__addArray(f"{self.__vecTypes[typeName]}{length}", name, baseAligement, baseOffset, num)
-
-    def addMatrix(self, name: str, typeName: str, cols: int, rows: int) -> int:
-        rowsOffsets = []
-        if rows in [1, 2, 3, 4]:
-            if rows == 1:
-                rowsOffsets = self.addScalarArray(name, typeName, cols)
-            else:
-                rowsOffsets = self.addVectorArray(name, typeName, rows, cols)
-
-            matValue = self.__values[-1]
-            matValue.setName(name)
-            matValue.setTypeName(f"{self.__matTypes[typeName]}{ f'{cols}x{rows}' if cols != rows else f'{cols}' }")
-
-        else:
-            print("Podano złą liczbę wierszy")
-        return rowsOffsets[0] if len(rowsOffsets) != 0 else rowsOffsets
-
-    def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int]:
-        matOffsets = []
-        for i in range(num):
-            matOffsets.append(self.addMatrix(f"{name}[{i}]", typeName, cols, rows))
-        
-        firstValue = self.__values[-len(matOffsets)]
-        lastValue = self.__values[-1]
-        lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
-
-        self.__values.append(StructValue(name,
-                                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
-                                         f"{self.__matTypes[typeName]}{ f'{cols}x{rows}' if cols != rows else f'{cols}'}[{num}]",
-                                         firstValue.getBaseAligement(),
-                                         firstValue.getAligementOffset(),
-                                         firstValue.getBaseOffset(),
-                                         0
-                                         ))
-        
-        for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
-
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
-        
-        return matOffsets
-
-    def addSquareMatrix(self, name: str, typeName: str, size: int) -> int:
-        return self.addMatrix(name, typeName, size, size)
-
-    def addSquareMatrixArray(self, name: str, typeName: str, size: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, typeName, size, size, num)
-
-# SPECIFIED ADD FUNCTIONS
-
-    def addBool(self, name: str) -> int:
-        return self.addScalar(name, StructValue.BOOL)
-
-    def addBoolArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, StructValue.BOOL, num)
-
-    def addInt(self, name: str) -> int:
-        return self.addScalar(name, StructValue.INT)
-
-    def addIntArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, StructValue.INT, num)
-
-    def addUint(self, name: str) -> int:
-        return self.addScalar(name, StructValue.UINT)
-
-    def addUintArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, StructValue.UINT, num)
-
-    def addFloat(self, name: str) -> int:
-        return self.addScalar(name, StructValue.FLOAT)
-
-    def addFloatArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, StructValue.FLOAT, num)
-
-    def addDouble(self, name: str) -> int:
-        return self.addScalar(name, StructValue.DOUBLE)
-
-    def addDoubleArray(self, name: str, num: int) -> list[int]:
-        return self.addScalarArray(name, StructValue.DOUBLE, num)
-
-##########################################
-
-    def addBVec(self, name: str, length: int) -> int:
-        return self.addVector(name, StructValue.BOOL, length)
-
-    def addBVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, StructValue.BOOL, length, num)
-
-    def addIVec(self, name: str, length: int) -> int:
-        return self.addVector(name, StructValue.INT, length)
-
-    def addIVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, StructValue.INT, length, num)
-
-    def addUVec(self, name: str, length: int) -> int:
-        return self.addVector(name, StructValue.UINT, length)
-
-    def addUVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, StructValue.UINT, length, num)
-
-    def addVec(self, name: str, length: int) -> int:
-        return self.addVector(name, StructValue.FLOAT, length)
-
-    def addVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, StructValue.FLOAT, length, num)
-
-    def addDVec(self, name: str, length: int) -> int:
-        return self.addVector(name, StructValue.DOUBLE, length)
-
-    def addDVecArray(self, name: str, length: int, num: int) -> list[int]:
-        return self.addVectorArray(name, StructValue.DOUBLE, length, num)
-
-###################################
-
-    def addBMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, StructValue.BOOL, cols, rows)
-
-    def addBMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, StructValue.BOOL, cols, rows, num)
-
-    def addIMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, StructValue.INT, cols, rows)
-
-    def addIMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, StructValue.INT, cols, rows, num)
-
-    def addUMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, StructValue.UINT, cols, rows)
-
-    def addUMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, StructValue.UINT, cols, rows, num)
-
-    def addMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, StructValue.FLOAT, cols, rows)
-
-    def addMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, StructValue.FLOAT, cols, rows, num)
-
-    def addDMat(self, name: str, cols: int, rows: int) -> int:
-        return self.addMatrix(name, StructValue.DOUBLE, cols, rows)
-
-    def addDMatArray(self, name: str, cols: int, rows: int, num: int) -> list[int]:
-        return self.addMatrixArray(name, StructValue.DOUBLE, cols, rows, num)
-
-###################################
-
-    def addSqrBMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, StructValue.BOOL, size)
-
-    def addSqrBMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, StructValue.BOOL, size, num)
-
-    def addSqrIMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, StructValue.INT, size)
-
-    def addSqrIMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, StructValue.INT, size, num)
-
-    def addSqrUMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, StructValue.UINT, size)
-
-    def addSqrUMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, StructValue.UINT, size, num)
-
-    def addSqrMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, StructValue.FLOAT, size)
-
-    def addSqrMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, StructValue.FLOAT, size, num)
-
-    def addSqrDMat(self, name: str, size: int) -> int:
-        return self.addSquareMatrix(name, StructValue.DOUBLE, size)
-
-    def addSqrDMatArray(self, name: str, size: int, num: int) -> list[int]:
-        return self.addSquareMatrixArray(name, StructValue.DOUBLE, size, num)
 
 #####################################
 
     def addStruct(self, name: str, struct: Self) -> int:
-        offset = self.__add("struct", name, struct.getBaseAligement(), struct.__baseOffset)
-        for value in struct.__values:
+        offset = self._add("struct", name, struct.getBaseAligement(), struct._baseOffset)
+        for value in struct._values:
             c : StructValue = value.copy()
             c.setBaseOffset(c.getBaseOffset() + offset)
-            self.__values[-1].append(c)
+            self._values[-1].append(c)
         
-        self.__values[-1].setPadding(0)
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        self._values[-1].setPadding(0)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return offset
 
@@ -270,11 +56,11 @@ class STD430Struct:
         for i in range(num):
             offsets.append(self.addStruct(f"{name}[{i}]", struct))
 
-        firstValue = self.__values[-len(offsets)]
-        lastValue = self.__values[-1]
+        firstValue = self._values[-len(offsets)]
+        lastValue = self._values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__values.append(StructValue(name,
+        self._values.append(StructValue(name,
                                         f"struct[{num}]",
                                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                                         firstValue.getBaseAligement(),
@@ -283,49 +69,22 @@ class STD430Struct:
                                         0))
         
         for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
+            self._values[-1].append(self._values[-(num - i) - 1])
+            self._values.pop(-(num - i) - 1)
         
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return offsets
 
 # GETTERS
 
-    def getValue(self, name: str) -> StructValue:
-        names = name.split('.')
-        arrayName = names[0] if names[0].find('[') != -1 else None
-        valueName = names[0] if arrayName is None else names[0].split('[')[0]
-        subValueName = '.'.join([names[i] for i in range(len(names)) if i != 0]) if len(names) > 1 else None
-        if arrayName is not None:
-            if subValueName is None:
-                subValueName = arrayName
-            else:
-                subValueName = arrayName + '.' + subValueName
-        for value in self.__values:
-            if value.getName() == valueName:
-                if subValueName is None:
-                    return value
-                else:
-                    return value.getSubValue(subValueName)
-        return None
-
     def getBaseAligement(self) -> int:
-        return self.__maxAligement
-
-    def getBaseOffset(self) -> int:
-        return self.__baseOffset
-
-    def getStructSize(self) -> int:
-        size = self.__baseOffset
-        if size % 16 != 0:
-            size += 16 - (size % 16)
-        return size
+        return self._maxAligement
     
     def __str__(self) -> str:
         text = "Struct layout STD430 (ALL VALUES IN BYTES):\n"        
-        for value in self.__values:
+        for value in self._values:
             text += value.print("  ")
         return text

@@ -283,34 +283,34 @@ class Std140Tests(unittest.TestCase):
                     baseOffset = 0
 
                     # Bool
-                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addMatrix("Bool1", StructValue.BOOL, c, r), baseOffset)
                     baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addBMat("Bool2", c, r), baseOffset)
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Int
-                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addMatrix("Int1", StructValue.INT, c, r), baseOffset)
                     baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addIMat("Int2", c, r), baseOffset)
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Uint
-                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addMatrix("Uint1", StructValue.UINT, c, r), baseOffset)
                     baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addUMat("Uint2", c, r), baseOffset)
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Float
-                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addMatrix("Float1", StructValue.FLOAT, c, r), baseOffset)
                     baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
                     self.assertEqual(self.struct.addMat("Float2", c, r), baseOffset)
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Double
-                    baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * r, 16, c)
                     self.assertEqual(self.struct.addMatrix("Double1", StructValue.DOUBLE, c, r), baseOffset)
                     baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * r, 16, c)
                     self.assertEqual(self.struct.addDMat("Double2", c, r), baseOffset)
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * r, 16, c)
 
 
         # 1 - 5 Square
@@ -341,34 +341,34 @@ class Std140Tests(unittest.TestCase):
                 baseOffset = 0
 
                 # Bool
-                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSquareMatrix("Bool1", StructValue.BOOL, s), baseOffset)
                 baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSqrBMat("Bool2", s), baseOffset)
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
 
                 # Int
-                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSquareMatrix("Int1", StructValue.INT, s), baseOffset)
                 baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSqrIMat("Int2", s), baseOffset)
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
 
                 # Uint
-                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSquareMatrix("Uint1", StructValue.UINT, s), baseOffset)
                 baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSqrUMat("Uint2", s), baseOffset)
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
 
                 # Float
-                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSquareMatrix("Float1", StructValue.FLOAT, s), baseOffset)
                 baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
                 self.assertEqual(self.struct.addSqrMat("Float2", s), baseOffset)
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
 
                 # Double
-                baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * s, 16, s)
                 self.assertEqual(self.struct.addSquareMatrix("Double1", StructValue.DOUBLE, s), baseOffset)
                 baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * s, 16, s)
                 self.assertEqual(self.struct.addSqrDMat("Double2", s), baseOffset)
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 8 * s, 16, s)
 
     def test_AddMatrixesArray(self):
         # Add Matrix Array Func
@@ -401,58 +401,139 @@ class Std140Tests(unittest.TestCase):
                     self.assertEqual(self.struct.addDMatArray("Double2", c, r, 2), None)
                 else:
                     num = 2
+                    baseOffset = 0
                     baseOffsets = []
-                    if num > 0:
+                    for i in range(num):
                         baseOffsets.append(0)
-                        if num > 1:
-                            for i in range(1, num):
-                                baseOffsets.append(self.updateBaseOffsetArray(baseOffsets[i-1], 4 * r, 16, c))
+                        for _ in range(i):
+                            baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
 
                     # Bool
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addMatrixArray("Bool1", StructValue.BOOL, c, r, num), baseOffsets)
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addBMatArray("Bool2", c, r, num), baseOffsets)
+                    self.assertEqual(self.struct.addMatrixArray("Bool1", StructValue.BOOL, c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
+                    self.assertEqual(self.struct.addBMatArray("Bool2", c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Int
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addMatrixArray("Int1", StructValue.INT, c, r, num), baseOffsets)
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addIMatArray("Int2", c, r, num), baseOffsets)
+                    self.assertEqual(self.struct.addMatrixArray("Int1", StructValue.INT, c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
+                    self.assertEqual(self.struct.addIMatArray("Int2", c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Uint
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addMatrixArray("Uint1", StructValue.UINT, c, r, num), baseOffsets)
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addUMatArray("Uint2", c, r, num), baseOffsets)
+                    self.assertEqual(self.struct.addMatrixArray("Uint1", StructValue.UINT, c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
+                    self.assertEqual(self.struct.addUMatArray("Uint2", c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Float
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addMatrixArray("Float1", StructValue.FLOAT, c, r, num), baseOffsets)
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, 16, c)
-                    self.assertEqual(self.struct.addMatArray("Float2", c, r, num), baseOffsets)
+                    self.assertEqual(self.struct.addMatrixArray("Float1", StructValue.FLOAT, c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
+                    self.assertEqual(self.struct.addMatArray("Float2", c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, 16, c)
 
                     # Double
                     baseAligementSize = 8 * r
                     if baseAligementSize % 16 != 0:
-                        baseAligementSize += (16 - (8 * r) % 16)
+                        baseAligementSize += (16 - baseAligementSize % 16)
                     for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 8 * r, baseAligementSize, c)
-                    self.assertEqual(self.struct.addMatrixArray("Double1", StructValue.DOUBLE, c, r, num), baseOffsets)
-                    for i in range(num):
-                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 8 * r, baseAligementSize, c)
-                    self.assertEqual(self.struct.addDMatArray("Double2", c, r, num), baseOffsets)
-        
-        # 1 - 5 Square
+                        baseOffsets[i] = 0
+                        for _ in range(i):
+                            baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * r, baseAligementSize, c)
+                    self.assertEqual(self.struct.addMatrixArray("Double1", StructValue.DOUBLE, c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, baseAligementSize, c)
+                    self.assertEqual(self.struct.addDMatArray("Double2", c, r, num), [bo + baseOffset for bo in baseOffsets])
+                    baseOffset += baseOffsets[-1]
+                    baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * r, baseAligementSize, c)
 
+        # 1 - 5 Square
+        for s in range(1, 6):
+            self.struct.reset()
+
+            if s == 1 or s == 5:
+                # Bool
+                self.assertEqual(self.struct.addSquareMatrixArray("Bool1", StructValue.BOOL, s, 2), None)
+                self.assertEqual(self.struct.addSqrBMatArray("Bool2", s, 2), None)
+
+                # Int
+                self.assertEqual(self.struct.addSquareMatrixArray("Int1", StructValue.INT, s, 2), None)
+                self.assertEqual(self.struct.addSqrIMatArray("Int2", s, 2), None)
+
+                # Uint
+                self.assertEqual(self.struct.addSquareMatrixArray("Uint1", StructValue.UINT, s, 2), None)
+                self.assertEqual(self.struct.addSqrUMatArray("Uint2", s, 2), None)
+
+                # Float
+                self.assertEqual(self.struct.addSquareMatrixArray("Float1", StructValue.FLOAT, s, 2), None)
+                self.assertEqual(self.struct.addSqrMatArray("Float2", s, 2), None)
+
+                # Double
+                self.assertEqual(self.struct.addSquareMatrixArray("Double1", StructValue.DOUBLE, s, 2), None)
+                self.assertEqual(self.struct.addSqrDMatArray("Double2", s, 2), None)
+            else:
+                num = 2
+                baseOffset = 0
+                baseOffsets = []
+                for i in range(num):
+                    baseOffsets.append(0)
+                    for _ in range(i):
+                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * s, 16, s)
+
+                # Bool
+                self.assertEqual(self.struct.addSquareMatrixArray("Bool1", StructValue.BOOL, s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+                self.assertEqual(self.struct.addSqrBMatArray("Bool2", s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+
+                # Int
+                self.assertEqual(self.struct.addSquareMatrixArray("Int1", StructValue.INT, s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+                self.assertEqual(self.struct.addSqrIMatArray("Int2", s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+
+                # Uint
+                self.assertEqual(self.struct.addSquareMatrixArray("Uint1", StructValue.UINT, s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+                self.assertEqual(self.struct.addSqrUMatArray("Uint2", s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+
+                # Float
+                self.assertEqual(self.struct.addSquareMatrixArray("Float1", StructValue.FLOAT, s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+                self.assertEqual(self.struct.addSqrMatArray("Float2", s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, 16, s)
+
+                # Double
+                baseAligementSize = 8 * s
+                if baseAligementSize % 16 != 0:
+                    baseAligementSize += (16 - baseAligementSize % 16)
+                for i in range(num):
+                    baseOffsets[i] = 0
+                    for _ in range(i):
+                        baseOffsets[i] = self.updateBaseOffsetArray(baseOffsets[i], 4 * s, baseAligementSize, s)
+                self.assertEqual(self.struct.addSquareMatrixArray("Double1", StructValue.DOUBLE, s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, baseAligementSize, s)
+                self.assertEqual(self.struct.addSqrDMatArray("Double2", s, num), [bo + baseOffset for bo in baseOffsets])
+                baseOffset += baseOffsets[-1]
+                baseOffset = self.updateBaseOffsetArray(baseOffset, 4 * s, baseAligementSize, s)
 
     def test_AddStruct(self):
         # Add Struct Test
@@ -527,13 +608,13 @@ class Std430Tests(unittest.TestCase):
         rect = STD430Struct()
         self.assertEqual(rect.addSqrMat("transform", 4), 0)
         self.assertEqual(rect.addVec("size", 2), 64)
-        self.assertEqual(rect.getStructSize(), 80)
+        self.assertEqual(rect.getSize(), 80)
 
         sprite = STD430Struct()
         self.assertEqual(sprite.addUVec("offset", 2), 0)
         self.assertEqual(sprite.addUVec("size", 2), 8)
         self.assertEqual(sprite.addBool("isActive"), 16)
-        self.assertEqual(sprite.getStructSize(), 32)
+        self.assertEqual(sprite.getSize(), 32)
 
         fill = STD430Struct()
         self.assertEqual(fill.addUint("type"), 0)
@@ -542,7 +623,7 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(fill.addFloat("progress"), 12)
         self.assertEqual(fill.addFloat("rotation"), 16)
         self.assertEqual(fill.addBool("isActive"), 20)
-        self.assertEqual(fill.getStructSize(), 32)
+        self.assertEqual(fill.getSize(), 32)
 
         uiElement = STD430Struct()
         self.assertEqual(uiElement.addStruct("rect", rect), 0)
@@ -550,18 +631,18 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(uiElement.addStruct("fill", fill), 112)
         self.assertEqual(uiElement.addVec("color", 4), 144)
         self.assertEqual(uiElement.addBool("isText"), 160)
-        self.assertEqual(uiElement.getStructSize(), 176)
+        self.assertEqual(uiElement.getSize(), 176)
 
         texture = STD430Struct()
         self.assertEqual(texture.addUVec("size", 2), 0)
         self.assertEqual(texture.addBool("isActive"), 8)
-        self.assertEqual(texture.getStructSize(), 16)
+        self.assertEqual(texture.getSize(), 16)
 
         ssbo = STD430Struct()
         self.assertEqual(ssbo.addStructArray("uiElements", uiElement, 8), [0, 176, 352, 528, 704, 880, 1056, 1232])
         self.assertEqual(ssbo.addStruct("elementTexture", texture), 1408)
         self.assertEqual(ssbo.addInt("elementLayer"), 1424)
-        self.assertEqual(ssbo.getStructSize(), 1440)
+        self.assertEqual(ssbo.getSize(), 1440)
 
     def test_OffsetCalculation2(self):
         pointLight = STD430Struct()
@@ -571,7 +652,7 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(pointLight.addFloat("constant"), 32)
         self.assertEqual(pointLight.addFloat("linear"), 36)
         self.assertEqual(pointLight.addFloat("quadratic"), 40)
-        self.assertEqual(pointLight.getStructSize(), 48)
+        self.assertEqual(pointLight.getSize(), 48)
 
         spotLight = STD430Struct()
         self.assertEqual(spotLight.addVec("position", 3), 0)
@@ -583,7 +664,7 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(spotLight.addFloat("constant"), 52)
         self.assertEqual(spotLight.addFloat("linear"), 56)
         self.assertEqual(spotLight.addFloat("quadratic"), 60)
-        self.assertEqual(spotLight.getStructSize(), 64)
+        self.assertEqual(spotLight.getSize(), 64)
 
         dirLight = STD430Struct()
         self.assertEqual(dirLight.addVec("direction", 3), 0)
@@ -593,7 +674,7 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(dirLight.addInt("padding1"), 100)
         self.assertEqual(dirLight.addInt("padding2"), 104)
         self.assertEqual(dirLight.addInt("padding3"), 108)
-        self.assertEqual(dirLight.getStructSize(), 112)
+        self.assertEqual(dirLight.getSize(), 112)
 
         ssbo = STD430Struct()
         self.assertEqual(ssbo.addUint("numberOfPointLights"), 0)
@@ -602,7 +683,7 @@ class Std430Tests(unittest.TestCase):
         self.assertEqual(ssbo.addStructArray("pointLights", pointLight, 8), [16, 64, 112, 160, 208, 256, 304, 352])
         self.assertEqual(ssbo.addStructArray("spotLights", spotLight, 8), [400, 464, 528, 592, 656, 720, 784, 848])
         self.assertEqual(ssbo.addStructArray("directionalLights", dirLight, 4), [912, 1024, 1136, 1248])
-        self.assertEqual(ssbo.getStructSize(), 1360)
+        self.assertEqual(ssbo.getSize(), 1360)
 
 
 if __name__ == "__main__":

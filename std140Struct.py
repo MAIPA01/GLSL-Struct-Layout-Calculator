@@ -10,34 +10,34 @@ class STD140Struct:
 
 # PRIVATE ADD FUNCTIONS
 
-    def __addValue(self, name: str, typeName: str, size: int, baseAligement: int, baseOffset: int, aligementOffset: int, padding: int | None = None) -> None:
-        self.__values.append(StructValue(name, typeName, size, baseAligement, baseOffset, aligementOffset, padding))
+    def _addValue(self, name: str, typeName: str, size: int, baseAligement: int, baseOffset: int, aligementOffset: int, padding: int | None = None) -> None:
+        self._values.append(StructValue(name, typeName, size, baseAligement, baseOffset, aligementOffset, padding))
 
-    def __add(self, name: str, typeName: str, baseAligement: int, baseOffset: int) -> int:
-        aligementOffset = self.__baseOffset
-        if self.__baseOffset % baseAligement != 0:
-            aligementOffset += baseAligement - (self.__baseOffset % baseAligement)
+    def _add(self, name: str, typeName: str, baseAligement: int, baseOffset: int) -> int:
+        aligementOffset = self._baseOffset
+        if self._baseOffset % baseAligement != 0:
+            aligementOffset += baseAligement - (self._baseOffset % baseAligement)
         
-        self.__addValue(name, typeName, baseOffset, baseAligement, aligementOffset, self.__baseOffset)
+        self._addValue(name, typeName, baseOffset, baseAligement, aligementOffset, self._baseOffset)
 
-        self.__baseOffset = aligementOffset + baseOffset
-        if baseAligement > self.__maxAligement:
-            self.__maxAligement = baseAligement
+        self._baseOffset = aligementOffset + baseOffset
+        if baseAligement > self._maxAligement:
+            self._maxAligement = baseAligement
         return aligementOffset
 
-    def __addArray(self, name: str, typeName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
+    def _addArray(self, name: str, typeName: str, baseAligement: int, baseOffset: int, num: int) -> list[int]:
         if baseAligement % 16 != 0:
             baseAligement += 16 - (baseAligement % 16)
 
         aligementOffsets = []
         for i in range(num):
-            aligementOffsets.append(self.__add(f"{name}[{i}]", typeName, baseAligement, baseOffset))
+            aligementOffsets.append(self._add(f"{name}[{i}]", typeName, baseAligement, baseOffset))
 
-        firstValue = self.__values[-len(aligementOffsets)]
-        lastValue = self.__values[-1]
+        firstValue = self._values[-len(aligementOffsets)]
+        lastValue = self._values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__addValue(name,
+        self._addValue(name,
                         f"{typeName}[{num}]",
                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                         baseAligement,
@@ -46,22 +46,22 @@ class STD140Struct:
                         0)
         
         for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
+            self._values[-1].append(self._values[-(num - i) - 1])
+            self._values.pop(-(num - i) - 1)
         
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return aligementOffsets
 
 # GENERAL ADD FUNCTIONS
 
     def addScalar(self, name: str, typeName: str) -> int:
-        return self.__add(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName])
+        return self._add(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName])
 
     def addScalarArray(self, name: str, typeName: str, num: int) -> list[int]:
-        return self.__addArray(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
+        return self._addArray(name, typeName, self.__typeSizes[typeName], self.__typeSizes[typeName], num)
 
     def addVector(self, name: str, typeName: str, length: int) -> int | None:
         if length < 2 or length > 4:
@@ -69,7 +69,7 @@ class STD140Struct:
 
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
         baseOffset = self.__typeSizes[typeName] * length
-        return self.__add(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset)
+        return self._add(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset)
 
     def addVectorArray(self, name: str, typeName: str, length: int, num: int) -> list[int] | None:
         if length < 2 or length > 4:
@@ -77,25 +77,17 @@ class STD140Struct:
         
         baseAligement = self.__typeSizes[typeName] * length if length != 3 else self.__typeSizes[typeName] * (length + 1)
         baseOffset = self.__typeSizes[typeName] * length
-        return self.__addArray(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset, num)
+        return self._addArray(name, f"{self.__vecTypes[typeName]}{length}", baseAligement, baseOffset, num)
 
     def addMatrix(self, name: str, typeName: str, cols: int, rows: int) -> int | None:
         if rows < 2 or rows > 4 or cols < 2 or cols > 4:
             return None
 
-        rowsOffsets = []
-        if rows in [1, 2, 3, 4]:
-            if rows == 1:
-                rowsOffsets = self.addScalarArray(name, typeName, cols)
-            else:
-                rowsOffsets = self.addVectorArray(name, typeName, rows, cols)
+        rowsOffsets = self.addVectorArray(name, typeName, rows, cols)
 
-            matValue = self.__values[-1]
-            matValue.setName(name)
-            matValue.setTypeName(f"{self.__matTypes[typeName]}{ f'{cols}x{rows}' if cols != rows else f'{cols}' }")
-
-        else:
-            print("Podano złą liczbę wierszy")
+        matValue = self._values[-1]
+        matValue.setName(name)
+        matValue.setTypeName(f"{self.__matTypes[typeName]}{ f'{cols}x{rows}' if cols != rows else f'{cols}' }")
         return rowsOffsets[0] if len(rowsOffsets) != 0 else rowsOffsets
 
     def addMatrixArray(self, name: str, typeName: str, cols: int, rows: int, num: int) -> list[int] | None:
@@ -106,11 +98,11 @@ class STD140Struct:
         for i in range(num):
             matOffsets.append(self.addMatrix(f"{name}[{i}]", typeName, cols, rows))
         
-        firstValue = self.__values[-len(matOffsets)]
-        lastValue = self.__values[-1]
+        firstValue = self._values[-len(matOffsets)]
+        lastValue = self._values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__addValue(name,
+        self._addValue(name,
                         f"{self.__matTypes[typeName]}{ f'{cols}x{rows}' if cols != rows else f'{cols}'}[{num}]",
                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                         firstValue.getBaseAligement(),
@@ -119,12 +111,12 @@ class STD140Struct:
                         0)
         
         for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
+            self._values[-1].append(self._values[-(num - i) - 1])
+            self._values.pop(-(num - i) - 1)
 
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
         
         return matOffsets
 
@@ -265,16 +257,16 @@ class STD140Struct:
 #####################################
 
     def addStruct(self, name: str, struct: Self) -> int:
-        offset = self.__add("struct", name, struct.getBaseAligement(), struct.__baseOffset)
-        for value in struct.__values:
+        offset = self._add("struct", name, struct.getBaseAligement(), struct._baseOffset)
+        for value in struct._values:
             c : StructValue = value.copy()
             c.setBaseOffset(c.getBaseOffset() + offset)
-            self.__values[-1].append(c)
+            self._values[-1].append(c)
         
-        self.__values[-1].setPadding(0)
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        self._values[-1].setPadding(0)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return offset
 
@@ -283,11 +275,11 @@ class STD140Struct:
         for i in range(num):
             offsets.append(self.addStruct(f"{name}[{i}]", struct))
 
-        firstValue = self.__values[-len(offsets)]
-        lastValue = self.__values[-1]
+        firstValue = self._values[-len(offsets)]
+        lastValue = self._values[-1]
         lastValuePadding = 0 if lastValue.getPadding() is None else lastValue.getPadding()
 
-        self.__addValue(name,
+        self._addValue(name,
                         f"struct[{num}]",
                         (lastValue.getAligementOffset() + lastValue.getSize() + lastValuePadding) - firstValue.getAligementOffset(),
                         firstValue.getBaseAligement(),
@@ -296,12 +288,12 @@ class STD140Struct:
                         0)
         
         for i in range(num):
-            self.__values[-1].append(self.__values[-(num - i) - 1])
-            self.__values.pop(-(num - i) - 1)
+            self._values[-1].append(self._values[-(num - i) - 1])
+            self._values.pop(-(num - i) - 1)
         
-        if self.__baseOffset % 16 != 0:
-            self.__values[-1].setPadding(16 - (self.__baseOffset % 16))
-            self.__baseOffset += 16 - (self.__baseOffset % 16)
+        if self._baseOffset % 16 != 0:
+            self._values[-1].setPadding(16 - (self._baseOffset % 16))
+            self._baseOffset += 16 - (self._baseOffset % 16)
 
         return offsets
 
@@ -351,9 +343,9 @@ class STD140Struct:
 # CLEANER
 
     def reset(self) -> None:
-        self.__baseOffset : int = 0
-        self.__values : list[StructValue] = []
-        self.__maxAligement : int = 0
+        self._baseOffset : int = 0
+        self._values : list[StructValue] = []
+        self._maxAligement : int = 0
 
 # GETTERS
 
@@ -376,7 +368,7 @@ class STD140Struct:
         return None
 
     def getBaseAligement(self) -> int:
-        baseAligement = self.__maxAligement
+        baseAligement = self._maxAligement
         if (baseAligement % 16 != 0):
             baseAligement += 16 - (baseAligement % 16)
         return baseAligement
@@ -385,7 +377,7 @@ class STD140Struct:
         return self.__baseOffset
 
     def getSize(self) -> int:
-        size = self.__baseOffset
+        size = self._baseOffset
         if size % 16 != 0:
             size += 16 - (size % 16)
         return size
