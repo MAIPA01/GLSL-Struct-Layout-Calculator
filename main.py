@@ -9,8 +9,8 @@ if __name__ == "__main__":
             out.write(chunk)
         out.write(separator)
 
-    short = True
-    extended = True
+    short = False
+    extended = False
 
     def std140Test1():
         uniformBuffer = STD140Struct()
@@ -240,4 +240,4 @@ if __name__ == "__main__":
         std430Tests()
         print("-----------------END OF STD430 Tests------------------")
 
-    # tests()
+    tests()
