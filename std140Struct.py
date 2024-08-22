@@ -257,7 +257,7 @@ class STD140Struct:
 #####################################
 
     def addStruct(self, name: str, struct: Self) -> int:
-        offset = self._add("struct", name, struct.getBaseAligement(), struct._baseOffset)
+        offset = self._add(name, "struct", struct.getBaseAligement(), struct._baseOffset)
         for value in struct._values:
             c : StructValue = value.copy()
             c.setBaseOffset(c.getBaseOffset() + offset)
@@ -386,6 +386,11 @@ class STD140Struct:
         text = "Struct layout STD140 (ALL VALUES IN BYTES):\n"
         for value in self._values:
             text += f'{value.getInfo(short, extended, "  ")}\n'
+
+        if extended and not short:
+            __YELLOW = "\033[93m"
+            __RESET = "\033[0m"
+            text += f'  - End padding: {__YELLOW}{self.getSize() - self._baseOffset}{__RESET}\n'
         return text
 
     def __str__(self) -> str:

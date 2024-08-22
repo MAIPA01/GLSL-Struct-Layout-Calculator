@@ -9,6 +9,9 @@ if __name__ == "__main__":
             out.write(chunk)
         out.write(separator)
 
+    short = True
+    extended = True
+
     def std140Test1():
         uniformBuffer = STD140Struct()
         uniformBuffer.addFloat("a")
@@ -32,43 +35,21 @@ if __name__ == "__main__":
         subStruct.addSqrMatArray("n", 3, 2)
 
         uniformBuffer.addStructArray("o", subStruct, 2)
-        # print(uniformBuffer)
-        # print(f"size: {uniformBuffer.getStructSize()}")
-        # print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
 
+        print(uniformBuffer.getInfo(short, extended))
+        firstSize = uniformBuffer.getSize()
+        print(f"size: {firstSize}")
+        firstLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {firstLost}")
         print("--------------OPTIMALIZED---------------")
-        uniformBuffer = STD140Struct()
-        uniformBuffer.addFloat("a")
-        uniformBuffer.addVec("b", 2)
-        uniformBuffer.addVec("c", 3)
-
-        subStruct = STD140Struct()
-        subStruct.addInt("d")
-        subStruct.addBVec("e", 2)
-        subStruct.optimalize()
-
-        uniformBuffer.addStruct("f", subStruct)
-        uniformBuffer.addFloat("g")
-        uniformBuffer.addFloatArray("h", 2)
-        uniformBuffer.addMat("i", 2, 3)
-
-        subStruct = STD140Struct()
-        subStruct.addUVec("j", 3)
-        subStruct.addVec("k", 2)
-        subStruct.addFloatArray("l", 2)
-        subStruct.addVec("m", 2)
-        subStruct.addSqrMatArray("n", 3, 2)
-        subStruct.optimalize()
-
-        uniformBuffer.addStructArray("o", subStruct, 2)
-
-        print(uniformBuffer)
-        print(f"size: {uniformBuffer.getSize()}")
-        print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
         uniformBuffer.optimalize()
-        print(uniformBuffer)
-        print(f"size: {uniformBuffer.getSize()}")
-        print(f"lost Bytes: {uniformBuffer.getLostBytes()}")
+        print(uniformBuffer.getInfo(short, extended))
+        secondSize = uniformBuffer.getSize()
+        print(f"size: {secondSize}")
+        secondLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {secondLost}")
+
+        print(f"\noptimalization: {firstSize - secondSize + firstLost - secondLost}")
 
     def std140Test2():
         uniformBuffer = STD140Struct()
@@ -88,8 +69,21 @@ if __name__ == "__main__":
         subStruct.addFloat("highlight_square_x")
 
         uniformBuffer.addStructArray("materialInputs", subStruct, 8)
-        print(uniformBuffer)
-        print(f"size: {uniformBuffer.getSize()}")
+
+        print(uniformBuffer.getInfo(short, extended))
+        firstSize = uniformBuffer.getSize()
+        print(f"size: {firstSize}")
+        firstLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {firstLost}")
+        print("--------------OPTIMALIZED---------------")
+        uniformBuffer.optimalize()
+        print(uniformBuffer.getInfo(short, extended))
+        secondSize = uniformBuffer.getSize()
+        print(f"size: {secondSize}")
+        secondLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {secondLost}")
+
+        print(f"\noptimalization: {firstSize - secondSize + firstLost - secondLost}")
 
     def std140Test3():
         uniformBuffer = STD140Struct()
@@ -99,8 +93,20 @@ if __name__ == "__main__":
         uniformBuffer.addFloat("farPlane")
         uniformBuffer.addFloat("gamma")
 
-        print(uniformBuffer)
-        print(f"size: {uniformBuffer.getSize()}")
+        print(uniformBuffer.getInfo(short, extended))
+        firstSize = uniformBuffer.getSize()
+        print(f"size: {firstSize}")
+        firstLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {firstLost}")
+        print("--------------OPTIMALIZED---------------")
+        uniformBuffer.optimalize()
+        print(uniformBuffer.getInfo(short, extended))
+        secondSize = uniformBuffer.getSize()
+        print(f"size: {secondSize}")
+        secondLost = uniformBuffer.getLostBytes()
+        print(f"lost Bytes: {secondLost}")
+
+        print(f"\noptimalization: {firstSize - secondSize + firstLost - secondLost}")
 
     def std140Tests():
         print("----------START OF TEST1-----------")
@@ -149,9 +155,20 @@ if __name__ == "__main__":
         ssbo.addStruct("elementTexture", texture)
         ssbo.addInt("elementLayer")
 
-        print(ssbo)
-        print(f"baseOffset: {ssbo.getBaseOffset()}")
-        print(f"size: {ssbo.getSize()}")
+        print(ssbo.getInfo(short, extended))
+        firstSize = ssbo.getSize()
+        print(f"size: {firstSize}")
+        firstLost = ssbo.getLostBytes()
+        print(f"lost Bytes: {firstLost}")
+        print("--------------OPTIMALIZED---------------")
+        ssbo.optimalize()
+        print(ssbo.getInfo(short, extended))
+        secondSize = ssbo.getSize()
+        print(f"size: {secondSize}")
+        secondLost = ssbo.getLostBytes()
+        print(f"lost Bytes: {secondLost}")
+
+        print(f"\noptimalization: {firstSize - secondSize + firstLost - secondLost}")
 
     def std430Test2():
         pointLight = STD430Struct()
@@ -190,9 +207,20 @@ if __name__ == "__main__":
         ssbo.addStructArray("spotLights", spotLight, 8)
         ssbo.addStructArray("directionalLights", dirLight, 4)
 
-        print(ssbo)
-        print(f"baseOffset: {ssbo.getBaseOffset()}")
-        print(f"size: {ssbo.getSize()}")
+        print(ssbo.getInfo(short, extended))
+        firstSize = ssbo.getSize()
+        print(f"size: {firstSize}")
+        firstLost = ssbo.getLostBytes()
+        print(f"lost Bytes: {firstLost}")
+        print("--------------OPTIMALIZED---------------")
+        ssbo.optimalize()
+        print(ssbo.getInfo(short, extended))
+        secondSize = ssbo.getSize()
+        print(f"size: {secondSize}")
+        secondLost = ssbo.getLostBytes()
+        print(f"lost Bytes: {secondLost}")
+
+        print(f"\noptimalization: {firstSize - secondSize + firstLost - secondLost}")
 
     def std430Tests():
         print("----------START OF TEST1-----------")
@@ -212,4 +240,4 @@ if __name__ == "__main__":
         std430Tests()
         print("-----------------END OF STD430 Tests------------------")
 
-    tests()
+    # tests()

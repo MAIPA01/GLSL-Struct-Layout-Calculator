@@ -149,7 +149,7 @@ class StructValue:
     def getInfo(self, short: bool = False, extended: bool = False, indent: str = "") -> str:
         info = f"{indent}- {self.__BLUE}{self.__typeName} {self.__GREEN}{self.__name}{self.__RESET}"
         if not short:
-            info += f": base size {self.__YELLOW}{self.__size}{self.__RESET}, base align {self.__YELLOW}{self.__baseAligement}{self.__RESET}, base off. {self.__YELLOW}{self.__baseOffset}{self.__RESET}, align off. {self.__YELLOW}{self.__aligementOffset}{self.__RESET}"
+            info += f": base size {self.__YELLOW}{self.__size}{self.__RESET}, base align {self.__YELLOW}{self.__baseAligement}{self.__RESET}, base off. {self.__YELLOW}{self.__baseOffset}{self.__RESET}, align off. {self.__YELLOW}{self.__aligementOffset}{self.__RESET}, lost {self.__YELLOW}{self.getLostBytes()}{self.__RESET}"
         
         if extended:
             if len(self.__subValues) > 0:
