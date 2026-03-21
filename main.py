@@ -240,4 +240,25 @@ if __name__ == "__main__":
         std430Tests()
         print("-----------------END OF STD430 Tests------------------")
 
-    tests()
+    # tests()
+
+    # DEFINE YOUR STRUCT OR BUFFER SAME WAY AS IN TESTS
+
+    # SAMPLE BUFFER
+    uniformBuffer = STD140Struct()
+    uniformBuffer.addSqrMat("model", 4)
+    uniformBuffer.addSqrMat("view", 4)
+    uniformBuffer.addSqrMat("proj", 4)
+    uniformBuffer.addFloat("deltaTime")
+
+    print(uniformBuffer.getInfo(short, extended))
+    firstSize = uniformBuffer.getSize()
+    print(f"size: {firstSize}")
+    firstLost = uniformBuffer.getLostBytes()
+    print(f"lost Bytes: {firstLost}")
+    uniformBuffer.optimalize()
+    print(uniformBuffer.getInfo(short, extended))
+    firstSize = uniformBuffer.getSize()
+    print(f"size: {firstSize}")
+    firstLost = uniformBuffer.getLostBytes()
+    print(f"lost Bytes: {firstLost}")
